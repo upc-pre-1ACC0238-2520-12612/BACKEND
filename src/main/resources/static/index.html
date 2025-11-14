@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de administración StayClean</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5fb;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-tabs button {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .nav-tabs button.active {
+            background: #6366f1;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 18px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        select {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 1px rgba(99,102,241,0.25);
+        }
+
+        button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary { background-color: #6366f1; color: white; }
+        .btn-danger  { background-color: #ef4444; color: white; }
+        .btn-secondary { background-color: #e5e7eb; color: #111827; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        th, td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f3f4ff;
+        }
+
+        th.sortable {
+            cursor: pointer;
+        }
+
+        th.sortable span {
+            font-size: 10px;
+            margin-left: 4px;
+            opacity: 0.6;
+        }
+
+        tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-natural {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-empresa {
+            background-color: #ede9fe;
+            color: #4c1d95;
+        }
+
+        .actions button {
+            margin-right: 4px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .error {
+            color: #b91c1c;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .success {
+            color: #15803d;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        section.module {
+            display: none;
+        }
+
+        section.module.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Panel Administración StayClean</h1>
+    <div class="nav-tabs">
+        <button id="tab-users" class="active">Usuarios</button>
+        <button id="tab-actions">Acciones sostenibles</button>
+        <button id="tab-rewards">Recompensas</button>
+        <button id="tab-points">Puntos de acopio</button>
+    </div>
+</header>
+
+<div class="container">
+
+    <div id="message" class=""></div>
+
+    <!-- ================== USUARIOS ================== -->
+    <section id="module-users" class="module active">
+        <h2>Usuarios</h2>
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <input type="text" id="searchInput" placeholder="Buscar por nombre o email...">
+                <button class="btn-secondary" id="searchBtn">Buscar</button>
+                <button class="btn-secondary" id="clearSearchBtn">Limpiar</button>
+            </div>
+            <div class="toolbar-right">
+                <input type="text" id="nameInput" placeholder="Nombre">
+                <input type="email" id="emailInput" placeholder="Email">
+                <input type="password" id="passwordInput" placeholder="Contraseña">
+                <select id="userTypeInput">
+                    <option value="Persona natural">Persona natural</option>
+                    <option value="Empresa">Empresa</option>
+                </select>
+                <button class="btn-primary" id="createBtn">Nuevo usuario</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th class="sortable" data-sort="id">ID <span>⇅</span></th>
+                <th class="sortable" data-sort="name">Nombre <span>⇅</span></th>
+                <th class="sortable" data-sort="email">Email <span>⇅</span></th>
+                <th>Tipo</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+        </table>
+
+        <div class="pagination">
+            <div id="paginationInfo">Mostrando 0 de 0 usuarios</div>
+            <div class="pagination-controls">
+                <button class="btn-secondary" id="prevPageBtn">&lt; Anterior</button>
+                <span id="pageLabel">Página 1 / 1</span>
+                <button class="btn-secondary" id="nextPageBtn">Siguiente &gt;</button>
+                <select id="sizeSelect">
+                    <option value="5">5 por página</option>
+                    <option value="10" selected>10 por página</option>
+                    <option value="20">20 por página</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================== ACCIONES SOSTENIBLES ================== -->
+    <section id="module-actions" class="module">
+        <h2>Acciones sostenibles</h2>
+
+        <div class="toolbar">
+            <div class="toolbar-right">
+                <input type="text" id="actionTitle" placeholder="Título">
+                <input type="text" id="actionCategory" placeholder="Categoría">
+                <input type="number" id="actionPoints" placeholder="Puntos por unidad">
+                <input type="text" id="actionUnit" placeholder="Unidad (kg, acción...)">
+                <input type="text" id="actionDescription" placeholder="Descripción">
+                <button class="btn-primary" id="createActionBtn">Nueva acción</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Puntos</th>
+                <th>Unidad</th>
+                <th>Activa</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="actionsTableBody"></tbody>
+        </table>
+    </section>
+
+    <!-- ================== RECOMPENSAS ================== -->
+    <section id="module-rewards" class="module">
+        <h2>Recompensas</h2>
+
+        <div class="toolbar">
+            <div class="toolbar-right">
+                <input type="text" id="rewardTitle" placeholder="Título">
+                <input type="text" id="rewardDescription" placeholder="Descripción">
+                <input type="number" id="rewardPoints" placeholder="Puntos requeridos">
+                <button class="btn-primary" id="createRewardBtn">Nueva recompensa</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Puntos requeridos</th>
+                <th>Activa</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="rewardsTableBody"></tbody>
+        </table>
+    </section>
+
+    <!-- ================== PUNTOS DE ACOPIO ================== -->
+    <section id="module-points" class="module">
+        <h2>Puntos de acopio</h2>
+
+        <div class="toolbar">
+            <div class="toolbar-right">
+                <input type="text" id="pointName" placeholder="Nombre">
+                <input type="text" id="pointAddress" placeholder="Dirección">
+                <input type="text" id="pointSchedule" placeholder="Horario">
+                <input type="number" step="0.000001" id="pointLat" placeholder="Latitud">
+                <input type="number" step="0.000001" id="pointLng" placeholder="Longitud">
+                <button class="btn-primary" id="createPointBtn">Nuevo punto</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>Horario</th>
+                <th>Lat</th>
+                <th>Lng</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="pointsTableBody"></tbody>
+        </table>
+    </section>
+
+</div>
+
+<script>
+    const API_BASE = "/api";
+
+    const messageDiv = document.getElementById("message");
+    function showMessage(msg, isError = false) {
+        messageDiv.textContent = msg;
+        messageDiv.className = isError ? "error" : "success";
+    }
+    function clearMessage() {
+        messageDiv.textContent = "";
+        messageDiv.className = "";
+    }
+
+    // =============== TABS ===============
+    const tabs = {
+        users: document.getElementById("module-users"),
+        actions: document.getElementById("module-actions"),
+        rewards: document.getElementById("module-rewards"),
+        points: document.getElementById("module-points")
+    };
+
+    function activateTab(tabName) {
+        Object.values(tabs).forEach(sec => sec.classList.remove("active"));
+        tabs[tabName].classList.add("active");
+
+        document.getElementById("tab-users").classList.remove("active");
+        document.getElementById("tab-actions").classList.remove("active");
+        document.getElementById("tab-rewards").classList.remove("active");
+        document.getElementById("tab-points").classList.remove("active");
+
+        if (tabName === "users")   document.getElementById("tab-users").classList.add("active");
+        if (tabName === "actions") document.getElementById("tab-actions").classList.add("active");
+        if (tabName === "rewards") document.getElementById("tab-rewards").classList.add("active");
+        if (tabName === "points")  document.getElementById("tab-points").classList.add("active");
+
+        clearMessage();
+
+        if (tabName === "users")   loadUsers();
+        if (tabName === "actions") loadActions();
+        if (tabName === "rewards") loadRewards();
+        if (tabName === "points")  loadPoints();
+    }
+
+    document.getElementById("tab-users").addEventListener("click", () => activateTab("users"));
+    document.getElementById("tab-actions").addEventListener("click", () => activateTab("actions"));
+    document.getElementById("tab-rewards").addEventListener("click", () => activateTab("rewards"));
+    document.getElementById("tab-points").addEventListener("click", () => activateTab("points"));
+
+    // =============== USUARIOS (CRUD CON PAGINACIÓN) ===============
+    let currentPage = 0;
+    let pageSize = 10;
+    let currentSearch = "";
+    let currentSortBy = "id";
+    let currentDirection = "asc";
+
+    const usersTableBody = document.getElementById("usersTableBody");
+    const paginationInfo = document.getElementById("paginationInfo");
+    const pageLabel = document.getElementById("pageLabel");
+
+    async function loadUsers() {
+        const params = new URLSearchParams({
+            page: currentPage,
+            size: pageSize,
+            sortBy: currentSortBy,
+            direction: currentDirection
+        });
+        if (currentSearch && currentSearch.trim() !== "") {
+            params.append("search", currentSearch.trim());
+        }
+        try {
+            const res = await fetch(`${API_BASE}/users?${params.toString()}`);
+            if (!res.ok) throw new Error("Error al obtener usuarios");
+            const data = await res.json();
+            renderUsersTable(data);
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    function renderUsersTable(pageData) {
+        usersTableBody.innerHTML = "";
+
+        if (!pageData.content || pageData.content.length === 0) {
+            usersTableBody.innerHTML = `<tr><td colspan="5">No hay usuarios.</td></tr>`;
+            paginationInfo.textContent = "Mostrando 0 de 0 usuarios";
+            pageLabel.textContent = "Página 1 / 1";
+            return;
+        }
+
+        pageData.content.forEach(user => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>
+                    <span class="badge ${user.userType === 'Empresa' ? 'badge-empresa' : 'badge-natural'}">
+                        ${user.userType}
+                    </span>
+                </td>
+                <td class="actions">
+                    <button class="btn-secondary" onclick="editUser(${user.id})">Editar</button>
+                    <button class="btn-danger" onclick="deleteUser(${user.id})">Eliminar</button>
+                </td>
+            `;
+            usersTableBody.appendChild(tr);
+        });
+
+        paginationInfo.textContent =
+            `Mostrando ${pageData.content.length} de ${pageData.totalElements} usuarios`;
+        pageLabel.textContent =
+            `Página ${pageData.page + 1} / ${pageData.totalPages || 1}`;
+
+        document.getElementById("prevPageBtn").disabled = pageData.page === 0;
+        document.getElementById("nextPageBtn").disabled = pageData.last;
+    }
+
+    async function createUser() {
+        const name = document.getElementById("nameInput").value.trim();
+        const email = document.getElementById("emailInput").value.trim();
+        const password = document.getElementById("passwordInput").value.trim();
+        const userType = document.getElementById("userTypeInput").value;
+
+        if (!name || !email || !password) {
+            showMessage("Nombre, email y contraseña son obligatorios", true);
+            return;
+        }
+
+        const body = { name, email, password, userType };
+
+        try {
+            const res = await fetch(`${API_BASE}/users`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(await res.text() || "Error al crear usuario");
+
+            showMessage("Usuario creado correctamente");
+            document.getElementById("nameInput").value = "";
+            document.getElementById("emailInput").value = "";
+            document.getElementById("passwordInput").value = "";
+            currentPage = 0;
+            await loadUsers();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function editUser(id) {
+        try {
+            const res = await fetch(`${API_BASE}/users/${id}`);
+            if (!res.ok) throw new Error("No se pudo obtener el usuario");
+            const user = await res.json();
+
+            const newName = prompt("Nuevo nombre:", user.name);
+            if (newName === null) return;
+
+            const newType = prompt("Nuevo tipo (Persona natural / Empresa):", user.userType);
+            if (newType === null) return;
+
+            const body = {
+                name: newName.trim(),
+                email: user.email,
+                password: "",
+                userType: newType.trim()
+            };
+
+            const resUpdate = await fetch(`${API_BASE}/users/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!resUpdate.ok) throw new Error(await resUpdate.text() || "Error al actualizar usuario");
+
+            showMessage("Usuario actualizado correctamente");
+            await loadUsers();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function deleteUser(id) {
+        if (!confirm("¿Seguro que quieres eliminar este usuario?")) return;
+        try {
+            const res = await fetch(`${API_BASE}/users/${id}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Error al eliminar usuario");
+            showMessage("Usuario eliminado");
+            await loadUsers();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    document.getElementById("createBtn").addEventListener("click", createUser);
+    document.getElementById("searchBtn").addEventListener("click", () => {
+        currentSearch = document.getElementById("searchInput").value;
+        currentPage = 0;
+        loadUsers();
+    });
+    document.getElementById("clearSearchBtn").addEventListener("click", () => {
+        document.getElementById("searchInput").value = "";
+        currentSearch = "";
+        currentPage = 0;
+        loadUsers();
+    });
+    document.getElementById("prevPageBtn").addEventListener("click", () => {
+        if (currentPage > 0) {
+            currentPage--;
+            loadUsers();
+        }
+    });
+    document.getElementById("nextPageBtn").addEventListener("click", () => {
+        currentPage++;
+        loadUsers();
+    });
+    document.getElementById("sizeSelect").addEventListener("change", (e) => {
+        pageSize = parseInt(e.target.value, 10);
+        currentPage = 0;
+        loadUsers();
+    });
+
+    document.querySelectorAll("th.sortable").forEach(th => {
+        th.addEventListener("click", () => {
+            const sort = th.getAttribute("data-sort");
+            if (currentSortBy === sort) {
+                currentDirection = currentDirection === "asc" ? "desc" : "asc";
+            } else {
+                currentSortBy = sort;
+                currentDirection = "asc";
+            }
+            currentPage = 0;
+            loadUsers();
+        });
+    });
+
+    // =============== ACCIONES SOSTENIBLES ===============
+    const actionsTableBody = document.getElementById("actionsTableBody");
+
+    async function loadActions() {
+        try {
+            const res = await fetch(`${API_BASE}/actions`);
+            if (!res.ok) throw new Error("Error al obtener acciones");
+            const data = await res.json();
+            renderActionsTable(data);
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    function renderActionsTable(data) {
+        actionsTableBody.innerHTML = "";
+        if (!data || data.length === 0) {
+            actionsTableBody.innerHTML = `<tr><td colspan="7">No hay acciones.</td></tr>`;
+            return;
+        }
+        data.forEach(a => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${a.id}</td>
+                <td>${a.title}</td>
+                <td>${a.category || ""}</td>
+                <td>${a.pointsPerUnit || ""}</td>
+                <td>${a.unit || ""}</td>
+                <td>${a.active ? "Sí" : "No"}</td>
+                <td class="actions">
+                    <button class="btn-secondary" onclick="editAction(${a.id})">Editar</button>
+                    <button class="btn-danger" onclick="deleteAction(${a.id})">Eliminar</button>
+                </td>
+            `;
+            actionsTableBody.appendChild(tr);
+        });
+    }
+
+    async function createAction() {
+        const title = document.getElementById("actionTitle").value.trim();
+        const category = document.getElementById("actionCategory").value.trim();
+        const pointsPerUnit = document.getElementById("actionPoints").value.trim();
+        const unit = document.getElementById("actionUnit").value.trim();
+        const description = document.getElementById("actionDescription").value.trim();
+
+        if (!title) {
+            showMessage("El título es obligatorio", true);
+            return;
+        }
+
+        const body = {
+            title,
+            description,
+            category,
+            pointsPerUnit: pointsPerUnit ? parseInt(pointsPerUnit, 10) : null,
+            unit,
+            active: true
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/actions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(await res.text() || "Error al crear acción");
+
+            showMessage("Acción creada");
+            document.getElementById("actionTitle").value = "";
+            document.getElementById("actionCategory").value = "";
+            document.getElementById("actionPoints").value = "";
+            document.getElementById("actionUnit").value = "";
+            document.getElementById("actionDescription").value = "";
+            await loadActions();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function editAction(id) {
+        try {
+            const res = await fetch(`${API_BASE}/actions/${id}`);
+            if (!res.ok) throw new Error("No se pudo obtener la acción");
+            const a = await res.json();
+
+            const newTitle = prompt("Nuevo título:", a.title);
+            if (newTitle === null) return;
+            const newCategory = prompt("Nueva categoría:", a.category || "");
+            if (newCategory === null) return;
+            const newPoints = prompt("Nuevos puntos por unidad:", a.pointsPerUnit || "");
+            if (newPoints === null) return;
+            const newUnit = prompt("Nueva unidad:", a.unit || "");
+            if (newUnit === null) return;
+            const newActiveStr = prompt("Activa? (sí/no):", a.active ? "sí" : "no");
+            if (newActiveStr === null) return;
+
+            const body = {
+                title: newTitle.trim(),
+                description: a.description,
+                category: newCategory.trim(),
+                pointsPerUnit: newPoints ? parseInt(newPoints, 10) : null,
+                unit: newUnit.trim(),
+                active: newActiveStr.toLowerCase().startsWith("s")
+            };
+
+            const resUpdate = await fetch(`${API_BASE}/actions/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!resUpdate.ok) throw new Error(await resUpdate.text() || "Error al actualizar acción");
+
+            showMessage("Acción actualizada");
+            await loadActions();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function deleteAction(id) {
+        if (!confirm("¿Eliminar esta acción?")) return;
+        try {
+            const res = await fetch(`${API_BASE}/actions/${id}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Error al eliminar acción");
+            showMessage("Acción eliminada");
+            await loadActions();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    document.getElementById("createActionBtn").addEventListener("click", createAction);
+
+    window.editAction = editAction;
+    window.deleteAction = deleteAction;
+    window.editUser = editUser;
+    window.deleteUser = deleteUser;
+
+    // =============== RECOMPENSAS ===============
+    const rewardsTableBody = document.getElementById("rewardsTableBody");
+
+    async function loadRewards() {
+        try {
+            const res = await fetch(`${API_BASE}/rewards`);
+            if (!res.ok) throw new Error("Error al obtener recompensas");
+            const data = await res.json();
+            renderRewardsTable(data);
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    function renderRewardsTable(data) {
+        rewardsTableBody.innerHTML = "";
+        if (!data || data.length === 0) {
+            rewardsTableBody.innerHTML = `<tr><td colspan="6">No hay recompensas.</td></tr>`;
+            return;
+        }
+        data.forEach(r => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.title}</td>
+                <td>${r.description || ""}</td>
+                <td>${r.requiredPoints}</td>
+                <td>${r.active ? "Sí" : "No"}</td>
+                <td class="actions">
+                    <button class="btn-secondary" onclick="editReward(${r.id})">Editar</button>
+                    <button class="btn-danger" onclick="deleteReward(${r.id})">Eliminar</button>
+                </td>
+            `;
+            rewardsTableBody.appendChild(tr);
+        });
+    }
+
+    async function createReward() {
+        const title = document.getElementById("rewardTitle").value.trim();
+        const description = document.getElementById("rewardDescription").value.trim();
+        const points = document.getElementById("rewardPoints").value.trim();
+
+        if (!title || !points) {
+            showMessage("Título y puntos requeridos son obligatorios", true);
+            return;
+        }
+
+        const body = {
+            title,
+            description,
+            requiredPoints: parseInt(points, 10),
+            active: true
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/rewards`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(await res.text() || "Error al crear recompensa");
+
+            showMessage("Recompensa creada");
+            document.getElementById("rewardTitle").value = "";
+            document.getElementById("rewardDescription").value = "";
+            document.getElementById("rewardPoints").value = "";
+            await loadRewards();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function editReward(id) {
+        try {
+            const res = await fetch(`${API_BASE}/rewards/${id}`);
+            if (!res.ok) throw new Error("No se pudo obtener la recompensa");
+            const r = await res.json();
+
+            const newTitle = prompt("Nuevo título:", r.title);
+            if (newTitle === null) return;
+            const newDesc = prompt("Nueva descripción:", r.description || "");
+            if (newDesc === null) return;
+            const newPoints = prompt("Nuevos puntos requeridos:", r.requiredPoints);
+            if (newPoints === null) return;
+            const newActiveStr = prompt("Activa? (sí/no):", r.active ? "sí" : "no");
+            if (newActiveStr === null) return;
+
+            const body = {
+                title: newTitle.trim(),
+                description: newDesc.trim(),
+                requiredPoints: parseInt(newPoints, 10),
+                active: newActiveStr.toLowerCase().startsWith("s")
+            };
+
+            const resUpdate = await fetch(`${API_BASE}/rewards/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!resUpdate.ok) throw new Error(await resUpdate.text() || "Error al actualizar recompensa");
+
+            showMessage("Recompensa actualizada");
+            await loadRewards();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function deleteReward(id) {
+        if (!confirm("¿Eliminar esta recompensa?")) return;
+        try {
+            const res = await fetch(`${API_BASE}/rewards/${id}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Error al eliminar recompensa");
+            showMessage("Recompensa eliminada");
+            await loadRewards();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    document.getElementById("createRewardBtn").addEventListener("click", createReward);
+    window.editReward = editReward;
+    window.deleteReward = deleteReward;
+
+    // =============== PUNTOS DE ACOPIO ===============
+    const pointsTableBody = document.getElementById("pointsTableBody");
+
+    async function loadPoints() {
+        try {
+            const res = await fetch(`${API_BASE}/collection-points`);
+            if (!res.ok) throw new Error("Error al obtener puntos de acopio");
+            const data = await res.json();
+            renderPointsTable(data);
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    function renderPointsTable(data) {
+        pointsTableBody.innerHTML = "";
+        if (!data || data.length === 0) {
+            pointsTableBody.innerHTML = `<tr><td colspan="8">No hay puntos de acopio.</td></tr>`;
+            return;
+        }
+        data.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td>${p.address || ""}</td>
+                <td>${p.schedule || ""}</td>
+                <td>${p.latitude || ""}</td>
+                <td>${p.longitude || ""}</td>
+                <td>${p.active ? "Sí" : "No"}</td>
+                <td class="actions">
+                    <button class="btn-secondary" onclick="editPoint(${p.id})">Editar</button>
+                    <button class="btn-danger" onclick="deletePoint(${p.id})">Eliminar</button>
+                </td>
+            `;
+            pointsTableBody.appendChild(tr);
+        });
+    }
+
+    async function createPoint() {
+        const name = document.getElementById("pointName").value.trim();
+        const address = document.getElementById("pointAddress").value.trim();
+        const schedule = document.getElementById("pointSchedule").value.trim();
+        const latStr = document.getElementById("pointLat").value.trim();
+        const lngStr = document.getElementById("pointLng").value.trim();
+
+        if (!name) {
+            showMessage("El nombre es obligatorio", true);
+            return;
+        }
+
+        const body = {
+            name,
+            address,
+            schedule,
+            latitude: latStr ? parseFloat(latStr) : null,
+            longitude: lngStr ? parseFloat(lngStr) : null,
+            active: true
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/collection-points`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(await res.text() || "Error al crear punto");
+
+            showMessage("Punto de acopio creado");
+            document.getElementById("pointName").value = "";
+            document.getElementById("pointAddress").value = "";
+            document.getElementById("pointSchedule").value = "";
+            document.getElementById("pointLat").value = "";
+            document.getElementById("pointLng").value = "";
+            await loadPoints();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function editPoint(id) {
+        try {
+            const res = await fetch(`${API_BASE}/collection-points/${id}`);
+            if (!res.ok) throw new Error("No se pudo obtener el punto");
+            const p = await res.json();
+
+            const newName = prompt("Nuevo nombre:", p.name);
+            if (newName === null) return;
+            const newAddress = prompt("Nueva dirección:", p.address || "");
+            if (newAddress === null) return;
+            const newSchedule = prompt("Nuevo horario:", p.schedule || "");
+            if (newSchedule === null) return;
+            const newLat = prompt("Nueva latitud:", p.latitude || "");
+            if (newLat === null) return;
+            const newLng = prompt("Nueva longitud:", p.longitude || "");
+            if (newLng === null) return;
+            const newActiveStr = prompt("Activo? (sí/no):", p.active ? "sí" : "no");
+            if (newActiveStr === null) return;
+
+            const body = {
+                name: newName.trim(),
+                address: newAddress.trim(),
+                schedule: newSchedule.trim(),
+                latitude: newLat ? parseFloat(newLat) : null,
+                longitude: newLng ? parseFloat(newLng) : null,
+                active: newActiveStr.toLowerCase().startsWith("s")
+            };
+
+            const resUpdate = await fetch(`${API_BASE}/collection-points/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!resUpdate.ok) throw new Error(await resUpdate.text() || "Error al actualizar punto");
+
+            showMessage("Punto actualizado");
+            await loadPoints();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    async function deletePoint(id) {
+        if (!confirm("¿Eliminar este punto de acopio?")) return;
+        try {
+            const res = await fetch(`${API_BASE}/collection-points/${id}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Error al eliminar punto");
+            showMessage("Punto eliminado");
+            await loadPoints();
+        } catch (e) {
+            showMessage(e.message, true);
+        }
+    }
+
+    document.getElementById("createPointBtn").addEventListener("click", createPoint);
+    window.editPoint = editPoint;
+    window.deletePoint = deletePoint;
+
+    loadUsers();
+</script>
+</body>
+</html>
