@@ -11,7 +11,6 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // ⚠️ En producción pásalo a variable de entorno o application.properties
     private static final String SECRET =
             "ESTE_ES_UN_SECRETO_SUPER_LARGO_DE_256_BITS_PARA_JWT_1234567890";
 

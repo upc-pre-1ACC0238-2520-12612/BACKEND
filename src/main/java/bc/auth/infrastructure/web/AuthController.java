@@ -40,10 +40,8 @@ public class AuthController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<AuthLoginResponseDto> login(@RequestBody LoginRequestDto dto) {
-        // tu servicio ya valida email + password
         User user = authService.login(dto.getEmail(), dto.getPassword());
 
-        // generamos token usando el email (o username que quieras)
         String token = jwtUtil.generateToken(user.getEmail());
 
         AuthLoginResponseDto response = new AuthLoginResponseDto(
@@ -56,6 +54,7 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
