@@ -64,9 +64,6 @@ public class UserRepositoryImpl implements UserRepository {
     public void deleteById(Long id) {
         jpaRepo.deleteById(id);
     }
-
-    // ------- NUEVO: paginación -------
-
     @Override
     public Page<User> findAll(Pageable pageable) {
         return jpaRepo.findAll(pageable)

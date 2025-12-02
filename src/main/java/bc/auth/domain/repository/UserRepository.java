@@ -14,10 +14,6 @@ public interface UserRepository {
     Optional<User> findByEmail(String email);
     List<User> findAll();
     void deleteById(Long id);
-
-    // nuevo: paginación simple
     Page<User> findAll(Pageable pageable);
-
-    // nuevo: búsqueda por nombre o email + paginación
     Page<User> search(String search, Pageable pageable);
 }

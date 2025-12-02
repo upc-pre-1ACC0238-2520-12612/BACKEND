@@ -1,11 +1,13 @@
 package bc.auth.infrastructure.web;
 
+import bc.auth.application.dto.AuthLoginResponseDto;
 import bc.auth.application.dto.LoginRequestDto;
 import bc.auth.application.dto.PagedResponseDto;
 import bc.auth.application.dto.RegisterRequestDto;
 import bc.auth.application.dto.UserResponseDto;
 import bc.auth.domain.model.User;
 import bc.auth.domain.service.AuthService;
+import bc.auth.infrastructure.config.JwtUtil;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +20,12 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtUtil jwtUtil) {
         this.authService = authService;
+        this.jwtUtil = jwtUtil;
     }
-
-    // ---------- AUTH ----------
 
     @PostMapping("/auth/register")
     public ResponseEntity<UserResponseDto> register(@RequestBody RegisterRequestDto dto) {
@@ -37,12 +39,23 @@ public class AuthController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto dto) {
+    public ResponseEntity<AuthLoginResponseDto> login(@RequestBody LoginRequestDto dto) {
+        // tu servicio ya valida email + password
         User user = authService.login(dto.getEmail(), dto.getPassword());
-        return ResponseEntity.ok(toDto(user));
-    }
 
-    // ---------- CRUD BÁSICO ----------
+        // generamos token usando el email (o username que quieras)
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        AuthLoginResponseDto response = new AuthLoginResponseDto(
+                token,
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getUserType()
+        );
+
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
@@ -76,12 +89,6 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    // ---------- NUEVO: LISTADO PAGINADO TIPO TABLA ----------
-
-    /**
-     * Ejemplo de uso desde el front:
-     * GET /api/users?page=0&size=10&sortBy=id&direction=asc&search=oscar
-     */
     @GetMapping("/users")
     public ResponseEntity<PagedResponseDto<UserResponseDto>> getUsersPage(
             @RequestParam(defaultValue = "0") int page,
@@ -113,8 +120,6 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-
-    // ---------- mapper ----------
 
     private UserResponseDto toDto(User u) {
         return new UserResponseDto(

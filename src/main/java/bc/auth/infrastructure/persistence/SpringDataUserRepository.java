@@ -10,7 +10,6 @@ public interface SpringDataUserRepository extends JpaRepository<UserEntity, Long
 
     Optional<UserEntity> findByEmail(String email);
 
-    // nuevo: búsqueda por nombre o email
     Page<UserEntity> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
             String name, String email, Pageable pageable
     );

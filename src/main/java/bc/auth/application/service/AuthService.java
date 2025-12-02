@@ -14,8 +14,7 @@ public class AuthService {
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
-    // REGISTER
+    
     public User register(String name, String email, String password, String userType) {
         userRepository.findByEmail(email).ifPresent(u -> {
             throw new IllegalArgumentException("Email ya registrado");
@@ -24,15 +23,13 @@ public class AuthService {
         User user = User.newUser(name, email, password, userType);
         return userRepository.save(user);
     }
-
-    // LOGIN
+    
     public User login(String email, String password) {
         return userRepository.findByEmail(email)
                 .filter(u -> u.getPassword().equals(password))
                 .orElseThrow(() -> new IllegalArgumentException("Credenciales incorrectas"));
     }
-
-    // CRUD normal (sin paginación, por si lo quieres usar)
+    
     public List<User> getAll() {
         return userRepository.findAll();
     }
@@ -55,9 +52,7 @@ public class AuthService {
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
-
-    // ------- NUEVO: paginación + búsqueda -------
-
+    
     public Page<User> getPage(Pageable pageable, String search) {
         if (search == null || search.trim().isEmpty()) {
             return userRepository.findAll(pageable);
